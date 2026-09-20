@@ -13,9 +13,8 @@ RUN npm install -g pnpm@10.26.0
 # Copy package definitions, lockfile, AND workspace config (essential for pnpm allowBuilds / sharp / esbuild)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
 
-# Configure high-speed npm mirror and install dependencies
-RUN pnpm config set registry https://registry.npmmirror.com && \
-    pnpm install
+# Install dependencies using official npm registry
+RUN pnpm install
 
 # Copy project source and build static output
 COPY . .
