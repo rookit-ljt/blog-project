@@ -2,7 +2,7 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
+    url: "https://blog.techvar.top",
     title: "rookie_L",
     description: "记录前端工程、Claude Code、Agent 和 AI 应用开发实践。",
     author: "李金涛",
