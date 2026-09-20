@@ -1,17 +1,23 @@
 # Stage 1: Build static site
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
-# Enable pnpm via corepack
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+# Set environment variables
 ENV ASTRO_TELEMETRY_DISABLED=1
-RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
-# Cache dependencies
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Install pinned pnpm version matching local development
+RUN npm install -g pnpm@10.26.0
 
-# Copy source and build
+# Copy package definitions, lockfile, AND workspace config (essential for pnpm allowBuilds / sharp / esbuild)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
+
+# Configure high-speed npm mirror and install dependencies
+RUN pnpm config set registry https://registry.npmmirror.com && \
+    pnpm install
+
+# Copy project source and build static output
 COPY . .
 RUN pnpm run build
 
