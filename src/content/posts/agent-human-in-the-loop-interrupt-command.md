@@ -31,9 +31,12 @@ LangGraph 团队发布的《Making it easier to build human-in-the-loop agents w
 
 传统的“人在回路”实现通常基于长轮询或线程阻塞：
 
-```text
-❌ 传统反模式：同步线程等待 (Blocking Thread)
-后端执行 ────> 执行到高危步骤 ────> 线程 sleep / 等待 HTTP 确认 ────> 服务超时挂掉 / 内存泄漏
+```mermaid
+flowchart LR
+    A["后端执行"] --> B["执行到高危步骤"]
+    B --> C["线程 sleep / 等待 HTTP 确认"]
+    C --> D["❌ 服务超时挂掉 / 内存泄漏"]
+    style D stroke:#ef4444,stroke-width:2px
 ```
 
 这种方案在生产环境中极易崩溃：
@@ -48,23 +51,14 @@ LangGraph 团队发布的《Making it easier to build human-in-the-loop agents w
 
 现代的人在回路架构建立在**可持久化状态机**之上。核心由两部分组成：
 
-```text
-┌────────────────────────────────────────────────────────┐
-│                   HITL 挂起与恢复生命周期               │
-└────────────────────────────────────────────────────────┘
-                          │
-         1. 运行中：生成 Checkpoint 001
-                          │
-         2. 触发 interrupt({ action: "send_email", ... })
-            - 立即将当前全量 State 序列化落盘 (Postgres/Redis)
-            - 主动向前端抛出中断事件并优雅终止当前执行线程
-                          │
-         3. 异步等待：可长达数秒、数小时或数天
-            - 前端界面渲染审批卡片，等待人类决策
-                          │
-         4. 用户决策触发恢复：Command(resume={ approved: true })
-            - 从数据库拉取 Checkpoint 001 快照
-            - 将人类输入合并入 State，从挂起点继续向下流转
+```mermaid
+flowchart TD
+    Step1["1. 运行中：生成 Checkpoint 001"]
+    Step2["2. 触发 interrupt({ action: 'send_email', ... })<br/>• 立即将当前全量 State 序列化落盘 (Postgres/Redis)<br/>• 主动向前端抛出中断事件并优雅终止当前执行线程"]
+    Step3["3. 异步等待：可长达数秒、数小时或数天<br/>• 前端界面渲染审批卡片，等待人类决策"]
+    Step4["4. 用户决策触发恢复：Command(resume={ approved: true })<br/>• 从数据库拉取 Checkpoint 001 快照<br/>• 将人类输入合并入 State，从挂起点继续向下流转"]
+
+    Step1 --> Step2 --> Step3 --> Step4
 ```
 
 ### 1. 后端定义中断断点（Python / LangGraph）

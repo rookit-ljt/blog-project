@@ -23,19 +23,19 @@ timezone: Asia/Shanghai
 
 MCP 在客户端（Claude Code）与外部服务之间建立了一个基于 JSON-RPC 2.0 的通用通信层：
 
-```text
-┌──────────────────────────────────────────────────────────┐
-│                   Claude Code (MCP Client)               │
-└──────────────────────────────────────────────────────────┘
-                             │ (JSON-RPC over stdio / SSE)
-        ┌────────────────────┼────────────────────┐
-        ▼                    ▼                    ▼
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Figma MCP   │     │  Linear MCP  │     │ Custom Docs  │
-│    Server    │     │    Server    │     │    Server    │
-└──────────────際に   └──────────────┘     └──────────────┘
-        │                    │                    │
-   读取设计Token         拉取工单与验收标准     查询内部私有契约
+```mermaid
+flowchart TD
+    Client["Claude Code (MCP Client)"]
+
+    subgraph Servers ["MCP Servers (JSON-RPC over stdio / SSE)"]
+        Figma["Figma MCP Server<br/>(读取设计 Token 与标注)"]
+        Linear["Linear MCP Server<br/>(拉取工单与验收标准)"]
+        Docs["Custom Docs Server<br/>(查询内部私有契约)"]
+    end
+
+    Client --> Figma
+    Client --> Linear
+    Client --> Docs
 ```
 
 通过 MCP，Claude Code 在启动时会自动注册这些外部能力，并在需要时像调用本地 `bash` 一样，自主发起对外部系统的结构化查询。

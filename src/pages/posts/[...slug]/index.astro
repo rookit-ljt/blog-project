@@ -219,6 +219,7 @@ const ogImage = ogImageUrl
     const codeBlocks = Array.from(document.querySelectorAll("pre"));
 
     for (const codeBlock of codeBlocks) {
+      if (codeBlock.getAttribute("data-language") === "mermaid" || codeBlock.classList.contains("mermaid")) continue;
       const wrapper = document.createElement("div");
       wrapper.style.position = "relative";
 

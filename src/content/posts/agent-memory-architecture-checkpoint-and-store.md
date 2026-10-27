@@ -33,18 +33,20 @@ LangChain / LangGraph 团队在最新的系统设计中，正式明确了 **Agen
 
 认知科学将人类记忆划分为两类：**工作记忆（Working Memory）**与**长期记忆（Long-Term Memory）**。现代 Agent 记忆架构正是这一理论在工程上的数字映射：
 
-```text
-┌────────────────────────────────────────────────────────┐
-│                   Agent 两层记忆架构体系                │
-└────────────────────────────────────────────────────────┘
-                          │
-     ┌────────────────────┴────────────────────┐
-     ▼                                         ▼
-【短期记忆 (Short-Term)】               【长期记忆 (Long-Term)】
-- 作用域：单会话 / 单线程 (Thread)      - 作用域：跨会话 / 全局用户 (Cross-Thread)
-- 载体：Checkpointer (快照栈)          - 载体：Store API (文档/语义库)
-- 记录：当前对话、中间变量、工具出参      - 记录：用户画像、编码偏好、项目硬约束
-- 特性：不可变、支持时间旅行回滚         - 特性：异步提取、语义检索 (Vector/BM25)
+```mermaid
+flowchart TD
+    Root["Agent 两层记忆架构体系"]
+    
+    subgraph ShortTerm ["短期记忆 (Short-Term)"]
+        ST1["• 作用域：单会话 / 单线程 (Thread)<br/>• 载体：Checkpointer (快照栈)<br/>• 记录：当前对话、中间变量、工具出参<br/>• 特性：不可变、支持时间旅行回滚"]
+    end
+
+    subgraph LongTerm ["长期记忆 (Long-Term)"]
+        LT1["• 作用域：跨会话 / 全局用户 (Cross-Thread)<br/>• 载体：Store API (文档/语义库)<br/>• 记录：用户画像、编码偏好、项目硬约束<br/>• 特性：异步提取、语义检索 (Vector/BM25)"]
+    end
+
+    Root --> ShortTerm
+    Root --> LongTerm
 ```
 
 ---
@@ -73,12 +75,14 @@ app.invoke({"messages": [...]}, config=config)
 
 前端可以直接调取历史快照树：
 
-```text
-Checkpoint #1 (用户提问) ➔ Checkpoint #2 (检索文档) ➔ Checkpoint #3 (修改代码，失败)
-                                    │
-                         【从 Checkpoint #2 重新拉出分支】
-                                    ▼
-                         Checkpoint #3' (人工修改提示词后重新推理)
+```mermaid
+flowchart LR
+    CP1["Checkpoint #1<br/>(用户提问)"] --> CP2["Checkpoint #2<br/>(检索文档)"]
+    CP2 --> CP3["Checkpoint #3<br/>(修改代码，失败)"]
+    style CP3 stroke:#ef4444,stroke-width:2px
+
+    CP2 -.->|从 #2 重新拉出分支| CP3_Alt["Checkpoint #3'<br/>(人工修改提示词后重新推理)"]
+    style CP3_Alt stroke:#10b981,stroke-width:2px
 ```
 
 这种回滚能力是让长链路 Agent 具备工程可用性的关键基础。
@@ -128,16 +132,20 @@ preferences = store.get(user_memory_key, "tech_preferences")
 
 在前端工程中，我们如何与后端的两层记忆体系对接？
 
-```text
-┌─────────────────────────┐             ┌─────────────────────────┐
-│        浏览器前端        │             │        Agent 服务端      │
-│                         │             │                         │
-│  [ IndexedDB 本地缓存 ] ─── 刷新页面恢复 ──> [ Checkpoint 线程快照 ] │
-│  (离线状态/草稿暂存)     │             │ (精确到节点级执行栈)     │
-│                         │             │                         │
-│  [ 本地 LocalStorage ] ──── 用户偏好同步 ─> [ Store API 长期存储 ]  │
-│  (UI 主题/语言偏好)     │             │ (跨设备跨会话用户画像)   │
-└─────────────────────────┘             └─────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Frontend ["浏览器前端"]
+        IDB["IndexedDB 本地缓存<br/>(离线状态 / 草稿暂存)"]
+        LS["本地 LocalStorage<br/>(UI 主题 / 语言偏好)"]
+    end
+
+    subgraph Backend ["Agent 服务端"]
+        CP["Checkpoint 线程快照<br/>(精确到节点级执行栈)"]
+        Store["Store API 长期存储<br/>(跨设备跨会话用户画像)"]
+    end
+
+    IDB -->|刷新页面恢复| CP
+    LS -->|用户偏好同步| Store
 ```
 
 1. **会话级恢复（Thread Hydration）**：

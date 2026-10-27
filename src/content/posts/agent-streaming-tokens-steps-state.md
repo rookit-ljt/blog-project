@@ -33,19 +33,15 @@ LangGraph 团队发布的《Streaming in LangGraph》一文，系统性梳理了
 
 在 LangGraph 架构中，流式输出被清晰解耦为三种不同职责的数据通道：
 
-```text
-┌────────────────────────────────────────────────────────┐
-│                   Agent 流式通信的三种粒度              │
-└────────────────────────────────────────────────────────┘
-                          │
-         1. Token 级流 (LLM Generation Chunk)
-            - 关注微观文字呈现（打字机效果）
-                          │
-         2. Step / Node 级流 (Intermediate Steps)
-            - 关注行为推进（哪个工具正在运行、耗时、出参入参）
-                          │
-         3. State 级流 (State Values & Updates Snapshot)
-            - 关注宏观业务状态（全局进度树、审批状态、数据快照）
+```mermaid
+flowchart TD
+    Title["Agent 流式通信的三种粒度"]
+    
+    L1["1. Token 级流 (LLM Generation Chunk)<br/>• 关注微观文字呈现（打字机效果）"]
+    L2["2. Step / Node 级流 (Intermediate Steps)<br/>• 关注行为推进（工具运行状态、耗时、出参入参）"]
+    L3["3. State 级流 (State Values & Updates Snapshot)<br/>• 关注宏观业务状态（全局进度树、审批状态、数据快照）"]
+
+    Title --> L1 --> L2 --> L3
 ```
 
 ---

@@ -24,29 +24,18 @@ Claude Code 的核心突破在于它是**代码库原生的自主协同体（Rep
 
 Claude Code 把这一链路重构成了闭环的 **Read-Plan-Execute-Verify 循环**：
 
-```text
-┌────────────────────────────────────────────────────────┐
-│                   Claude Code 闭环协作循环              │
-└────────────────────────────────────────────────────────┘
-                          │
-         1. 探索感知 (Observe & Search)
-            - ripgrep 检索关键词与符号
-            - 遍历目录树与读取配置文件
-                          │
-         2. 推理规划 (Plan & Constrain)
-            - 结合 CLAUDE.md 规则制定修改计划
-            - 分析依赖项与破坏性风险
-                          │
-         3. 执行变更 (Execute Tool)
-            - 生成精准的 Unified Diff 补丁
-            - 修改文件系统
-                          │
-         4. 验证反馈 (Verify & Self-heal)
-            - 执行 pnpm test / astro check
-            - 捕获编译器报错并自动修复
-                          │
-         5. 交付提单 (Commit & PR)
-            - 生成结构化 Git 提交与 PR 摘要
+```mermaid
+flowchart TD
+    Title["Claude Code 闭环协作循环"]
+
+    P1["1. 探索感知 (Observe & Search)<br/>• ripgrep 检索关键词与符号<br/>• 遍历目录树与读取配置文件"]
+    P2["2. 推理规划 (Plan & Constrain)<br/>• 结合 CLAUDE.md 规则制定修改计划<br/>• 分析依赖项与破坏性风险"]
+    P3["3. 执行变更 (Execute Tool)<br/>• 生成精准的 Unified Diff 补丁<br/>• 修改文件系统"]
+    P4["4. 验证反馈 (Verify & Self-heal)<br/>• 执行 pnpm test / astro check<br/>• 捕获编译器报错并自动修复"]
+    P5["5. 交付提单 (Commit & PR)<br/>• 生成结构化 Git 提交与 PR 摘要"]
+
+    Title --> P1 --> P2 --> P3 --> P4 --> P5
+    P4 -.->|测试未通过/报错自愈| P2
 ```
 
 在这个循环中，模型自己充当了“阅读者”、“编码者”和“测试执行者”。只要工程师给出的目标足够清晰，它就可以自主排查问题、定位依赖并验证改动。

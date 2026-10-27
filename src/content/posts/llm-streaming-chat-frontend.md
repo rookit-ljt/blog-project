@@ -22,9 +22,19 @@ timezone: Asia/Shanghai
 
 页面不应该直接把模型密钥放进浏览器。推荐的调用链是：
 
-```text
-浏览器 ── POST /api/chat ──> 自己的服务端 ──> LLM API
-浏览器 <─ text/event-stream ── 自己的服务端 <─ 模型增量结果
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Browser as 浏览器前端
+    participant Server as 业务服务端
+    participant LLM as LLM API
+
+    Browser->>Server: POST /api/chat (对话上下文)
+    Server->>LLM: 发起流式推理 (stream=true)
+    loop 持续流式传输
+        LLM-->>Server: 模型增量片段
+        Server-->>Browser: text/event-stream (SSE 增量推送)
+    end
 ```
 
 服务端收到完整的对话消息后，向模型 API 发起请求，并把模型生成的片段立即转发给浏览器。浏览器每收到一个片段，就更新当前消息的内容。

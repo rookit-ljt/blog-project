@@ -21,22 +21,16 @@ Claude Code 官方提供的解决方案是在项目根目录放置一份 **`CLAU
 
 一份能够真正约束模型行为的 `CLAUDE.md`，必须具备“具体、可执行、可机器验证”的特点。避免写“请编写优美简洁的代码”这种无法验证的空话。
 
-```text
-┌────────────────────────────────────────────────────────┐
-│                   CLAUDE.md 四大核心要素                │
-└────────────────────────────────────────────────────────┘
-                          │
-         1. 常用命令与校验契约 (Commands & Validation)
-            - 精确的构建、测试、类型检查命令，杜绝包管理器混用
-                          │
-         2. 代码风格与架构不变量 (Architecture & Style)
-            - 目录分层职责、状态管理规范、组件抽离原则
-                          │
-         3. 负向约束与红线 (Negative Constraints)
-            - 明确禁止的行为（如禁止静默降级 tsconfig、禁止引入重量级依赖）
-                          │
-         4. 提交与审查规范 (Commits & Review)
-            - Git 分支命名、Conventional Commits 格式、修改后说明规范
+```mermaid
+flowchart TD
+    Title["CLAUDE.md 四大核心要素"]
+
+    E1["1. 常用命令与校验契约 (Commands & Validation)<br/>• 精确的构建、测试、类型检查命令，杜绝包管理器混用"]
+    E2["2. 代码风格与架构不变量 (Architecture & Style)<br/>• 目录分层职责、状态管理规范、组件抽离原则"]
+    E3["3. 负向约束与红线 (Negative Constraints)<br/>• 明确禁止的行为（禁止静默降级 tsconfig、禁止引入重量级依赖）"]
+    E4["4. 提交与审查规范 (Commits & Review)<br/>• Git 分支命名、Conventional Commits 格式、修改后说明规范"]
+
+    Title --> E1 --> E2 --> E3 --> E4
 ```
 
 ---
