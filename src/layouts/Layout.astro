@@ -42,6 +42,7 @@ const rssHref = getRelativeLocaleUrl(
     <link rel="icon" href={getAssetPath("favicon.ico")} />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
 
     <!-- Primary meta -->
     <title>{title}</title>
@@ -116,6 +117,31 @@ const rssHref = getRelativeLocaleUrl(
     <script>
       import "@/scripts/theme";
       import "@/scripts/mermaid";
+    </script>
+
+    <!-- Busuanzi Analytics -->
+    <script
+      is:inline
+      defer
+      src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"
+    ></script>
+    <script is:inline>
+      let isInitialLoad = true;
+      document.addEventListener("astro:page-load", () => {
+        if (isInitialLoad) {
+          isInitialLoad = false;
+          return;
+        }
+        if (typeof bszCaller !== "undefined") {
+          bszCaller.fetch(
+            "//busuanzi.ibruce.info/busuanzi?jsonpCallback=BusuanziCallback",
+            function (a) {
+              bszTag.texts(a);
+              bszTag.shows();
+            }
+          );
+        }
+      });
     </script>
   </body>
 </html>
