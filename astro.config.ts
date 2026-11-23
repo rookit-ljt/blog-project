@@ -1,7 +1,7 @@
 import { defineConfig, envField, svgoOptimizer } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
-import sitemap from "@astrojs/sitemap";
+import sitemap, { ChangeFreqEnum } from "@astrojs/sitemap";
 import { unified } from "@astrojs/markdown-remark";
 import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
@@ -21,11 +21,28 @@ export default defineConfig({
     sitemap({
       filter: page =>
         config.features?.showArchives !== false || !page.endsWith("/archives/"),
+      serialize(item) {
+        const url = item.url;
+        if (url === `${config.site.url}/` || url === config.site.url) {
+          item.changefreq = ChangeFreqEnum.DAILY;
+          item.priority = 1.0;
+        } else if (url.includes("/posts/")) {
+          item.changefreq = ChangeFreqEnum.WEEKLY;
+          item.priority = 0.8;
+        } else if (url.includes("/tags/")) {
+          item.changefreq = ChangeFreqEnum.WEEKLY;
+          item.priority = 0.5;
+        } else {
+          item.changefreq = ChangeFreqEnum.MONTHLY;
+          item.priority = 0.6;
+        }
+        return item;
+      },
     }),
   ],
   i18n: {
-    locales: ["en", "zh-CN"],
-    defaultLocale: "en",
+    locales: ["zh-CN", "en"],
+    defaultLocale: "zh-CN",
     routing: {
       prefixDefaultLocale: false,
     },

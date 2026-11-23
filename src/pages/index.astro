@@ -23,9 +23,45 @@ const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 const homePath = getRelativeLocaleUrl(locale, "");
+
+const websiteStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: config.site.title,
+  url: config.site.url,
+  description: config.site.description,
+  inLanguage: locale,
+  author: {
+    "@type": "Person",
+    name: config.site.author,
+    ...(config.site.profile && { url: config.site.profile }),
+  },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${config.site.url}/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
 ---
 
-<Layout>
+<Layout
+  keywords={[
+    "前端工程",
+    "Claude Code",
+    "Agent",
+    "AI应用",
+    "前端架构",
+    "LLM",
+    "Tool Calling",
+  ]}
+>
+  <Fragment slot="head">
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(websiteStructuredData)}
+    />
+  </Fragment>
   <Header />
   <main
     id="main-content"

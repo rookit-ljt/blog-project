@@ -4,23 +4,47 @@ import config from "@/config";
 
 type Props = {
   title?: string;
+  articleTitle?: string;
   description?: string;
   ogImage?: string;
   canonicalURL?: string;
   pubDatetime?: Date;
   modDatetime?: Date | null;
+  tags?: string[];
 };
 
 const { site } = config;
 
-const { title, description, ogImage, canonicalURL, pubDatetime, modDatetime } =
-  Astro.props;
+const {
+  title,
+  articleTitle,
+  description,
+  ogImage,
+  canonicalURL,
+  pubDatetime,
+  modDatetime,
+  tags = [],
+} = Astro.props;
 
-const structuredData = {
+const headline = articleTitle ?? title ?? site.title;
+const pageUrl = canonicalURL ?? new URL(Astro.url.pathname, Astro.site).href;
+const socialImageUrl = ogImage
+  ? new URL(ogImage, Astro.site ?? Astro.url).href
+  : undefined;
+
+const articleStructuredData = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  headline: title ?? site.title,
-  image: ogImage,
+  headline: headline,
+  description: description ?? site.description,
+  url: pageUrl,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": pageUrl,
+  },
+  inLanguage: Astro.currentLocale ?? site.lang,
+  ...(socialImageUrl && { image: [socialImageUrl] }),
+  ...(tags && tags.length > 0 && { keywords: tags.join(", ") }),
   ...(pubDatetime && { datePublished: pubDatetime.toISOString() }),
   ...(modDatetime && { dateModified: modDatetime.toISOString() }),
   author: [
@@ -30,14 +54,48 @@ const structuredData = {
       ...(site.profile && { url: site.profile }),
     },
   ],
+  publisher: {
+    "@type": "Person",
+    name: site.author,
+    ...(site.profile && { url: site.profile }),
+  },
+};
+
+const breadcrumbStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "首页",
+      item: site.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "文章",
+      item: `${site.url}/posts/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: headline,
+      item: pageUrl,
+    },
+  ],
 };
 ---
 
-<Layout {title} {description} {ogImage} {canonicalURL}>
+<Layout
+  {title}
+  {description}
+  {ogImage}
+  {canonicalURL}
+  ogType="article"
+  keywords={tags}
+>
   <Fragment slot="head">
-    <!-- Override og:type for article pages -->
-    <meta property="og:type" content="article" />
-
     {
       pubDatetime && (
         <meta
@@ -54,11 +112,17 @@ const structuredData = {
         />
       )
     }
+    {tags && tags.map(tag => <meta property="article:tag" content={tag} />)}
 
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify(structuredData)}
+      set:html={JSON.stringify(articleStructuredData)}
+    />
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(breadcrumbStructuredData)}
     />
   </Fragment>
 
